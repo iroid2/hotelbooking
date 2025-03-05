@@ -1,3 +1,4 @@
+// @ts-ignore
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,6 +45,7 @@ export default function RoleForm({ editingId, initialData }: RoleFormProps) {
         : await createRole(data);
 
       if (!result.success) {
+        // @ts-ignore
         toast.error(result.error);
         return;
       }

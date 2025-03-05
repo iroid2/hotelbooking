@@ -1,6 +1,6 @@
 import React from "react";
 import { columns } from "./columns";
-// import DataTable from "@/components/DataTableComponents/DataTable";
+import DataTable from "@/components/DataTableComponents/DataTable";
 import { getBlogCategories, getDashboardBlogs } from "@/actions/blogs";
 import BlogCategoryList from "@/components/dashboard/blogs/blog-categories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,7 +45,7 @@ export default async function page() {
             </div>
           </div>
           <div className="py-8">
-            {/* <DataTable data={blogs} columns={columns} /> */}
+            <DataTable data={blogs} columns={columns} />
           </div>
         </TabsContent>
         <TabsContent value="blog-categories" className="space-y-8">

@@ -2,7 +2,7 @@
 import { ResetPasswordEmail } from "@/components/email-templates/reset-password";
 import { db } from "@/prisma/db";
 import { UserProps } from "@/types/types";
-import bcrypt, { compare } from "bcrypt";
+import { compare, hash } from "bcrypt-ts"; // Updated import statement
 import { revalidatePath } from "next/cache";
 import { PasswordProps } from "@/components/Forms/ChangePasswordForm";
 import { Resend } from "resend";
@@ -67,7 +67,7 @@ export async function createUser(data: UserProps) {
       }
 
       // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await hash(password, 10); // Use hash function
 
       // Create user with role
       const newUser = await tx.user.create({
@@ -105,6 +105,7 @@ export async function createUser(data: UserProps) {
     };
   }
 }
+
 export async function getAllMembers() {
   try {
     const members = await db.user.findMany({
@@ -119,6 +120,7 @@ export async function getAllMembers() {
     return 0;
   }
 }
+
 export async function getAllUsers() {
   try {
     const users = await db.user.findMany({
@@ -165,6 +167,7 @@ export async function getUserById(id: string) {
     console.log(error);
   }
 }
+
 export async function sendResetLink(email: string) {
   try {
     const user = await db.user.findUnique({
@@ -226,17 +229,18 @@ export async function updateUserPassword(id: string, data: PasswordProps) {
       id,
     },
   });
-  // Check if the Old Passw = User Pass
+  // Check if the Old Password matches the User's Password
   let passwordMatch: boolean = false;
-  //Check if Password is correct
+
+  // Check if Password is correct
   if (existingUser && existingUser.password) {
     // if user exists and password exists
-    passwordMatch = await compare(data.oldPassword, existingUser.password);
+    passwordMatch = await compare(data.oldPassword, existingUser.password); // Use compare function
   }
   if (!passwordMatch) {
     return { error: "Old Password Incorrect", status: 403 };
   }
-  const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+  const hashedPassword = await hash(data.newPassword, 10); // Use hash function
   try {
     const updatedUser = await db.user.update({
       where: {
@@ -252,6 +256,7 @@ export async function updateUserPassword(id: string, data: PasswordProps) {
     console.log(error);
   }
 }
+
 export async function resetUserPassword(
   email: string,
   token: string,
@@ -270,7 +275,7 @@ export async function resetUserPassword(
       data: null,
     };
   }
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const hashedPassword = await hash(newPassword, 10); // Use hash function
   try {
     const updatedUser = await db.user.update({
       where: {
