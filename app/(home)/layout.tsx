@@ -1,21 +1,42 @@
-import PromoBanner from "@/components/frontend/PromoBanner";
-import Footer from "@/components/frontend/site-footer";
-import SiteHeader from "@/components/frontend/site-header";
-import { authOptions } from "@/config/auth";
-import { getServerSession } from "next-auth";
-import React, { ReactNode } from "react";
-export default async function HomeLayout({
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
+import "../globals.css";
+import { ThemeProvider } from "@/components/mine/theme-provider";
+import Navbar from "@/components/mine/navbar";
+import Footer from "@/components/mine/footer";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
+
+export default function RootLayout({
   children,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
   return (
-    <div className="bg-white">
-      {/* <PromoBanner /> */}
-      <SiteHeader session={session} />
-      {children}
-      <Footer />
-    </div>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
