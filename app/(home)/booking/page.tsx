@@ -33,7 +33,7 @@ export default function BookingPage() {
   return (
     <div className="container px-4 py-8 md:px-6 md:py-12">
       <Link
-        href="/hotels/1"
+        href="/hotel/1"
         className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6"
       >
         <ChevronLeft className="mr-1 h-4 w-4" />

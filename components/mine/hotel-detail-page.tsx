@@ -1,609 +1,560 @@
 "use client";
 
-import { useState } from "react";
+import type React from "react";
+
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import Link from "next/link";
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import {
+  ChevronLeft,
+  ChevronRight,
   Star,
   MapPin,
-  Wifi,
-  Coffee,
-  Utensils,
-  Car,
-  PocketIcon as Pool,
-  Dumbbell,
-  Snowflake,
+  Share,
   Heart,
-  Share2,
-  ChevronLeft,
-  CalendarIcon,
+  Calendar,
   Users,
+  ArrowLeft,
+  Wifi,
+  Utensils,
+  Dumbbell,
+  Waves,
+  Car,
+  SpadeIcon as Spa,
+  BedDouble,
+  Coffee,
+  Diamond,
+  TreePalmIcon as PalmTree,
+  MountainSnow,
+  Building2,
+  TreesIcon as Tree,
+  Landmark,
+  Gem,
+  Check,
 } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getHotelById, getHotelImages, hotelCategories } from "@/data/hotels";
 
-// Sample data for the hotel
-const hotelData = {
-  id: 1,
-  name: "The Grand Palace",
-  location: "Paris, France",
-  description:
-    "Experience luxury in the heart of Paris with breathtaking views of the Eiffel Tower. The Grand Palace offers an unforgettable stay with world-class amenities, exceptional dining, and impeccable service. Our rooms are elegantly designed with comfort and style in mind, featuring premium bedding, spacious bathrooms, and state-of-the-art technology.",
-  longDescription:
-    "Nestled in the vibrant heart of Paris, The Grand Palace stands as a testament to timeless elegance and luxury. This five-star establishment offers guests an unparalleled experience, combining classic Parisian charm with modern amenities. Each of our 245 rooms and suites is meticulously designed to provide the utmost comfort, featuring handcrafted furniture, premium linens, and panoramic views of the city's iconic landmarks.\n\nOur culinary offerings are led by renowned Chef Pierre Laurent, whose Michelin-starred restaurant 'Le Ciel' showcases the finest French cuisine using locally sourced ingredients. For a more casual dining experience, our brasserie 'Café Lumière' offers all-day dining with a terrace overlooking the bustling streets of Paris.\n\nThe Grand Palace Spa spans over 1,000 square meters, featuring a heated indoor pool, hammam, sauna, and treatment rooms where guests can indulge in exclusive therapies and massages. Our fitness center is equipped with the latest Technogym equipment and offers personal training sessions upon request.",
-  price: 450,
-  discountPrice: 380,
-  rating: 4.9,
-  reviewCount: 487,
-  discount: true,
-  images: [
-    "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2070&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop",
-  ],
-  amenities: [
-    { name: "Free WiFi", icon: Wifi },
-    { name: "Breakfast Included", icon: Coffee },
-    { name: "Restaurant", icon: Utensils },
-    { name: "Parking", icon: Car },
-    { name: "Swimming Pool", icon: Pool },
-    { name: "Fitness Center", icon: Dumbbell },
-    { name: "Air Conditioning", icon: Snowflake },
-  ],
-  rooms: [
-    {
-      id: 1,
-      name: "Deluxe Room",
-      price: 380,
-      size: "35m²",
-      beds: "1 King Bed",
-      occupancy: "2 Adults",
-      image:
-        "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1974&auto=format&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Premium Suite",
-      price: 580,
-      size: "55m²",
-      beds: "1 King Bed",
-      occupancy: "2 Adults, 2 Children",
-      image:
-        "https://images.unsplash.com/photo-1591088398332-8a7791972843?q=80&w=2067&auto=format&fit=crop",
-    },
-    {
-      id: 3,
-      name: "Family Room",
-      price: 450,
-      size: "45m²",
-      beds: "2 Queen Beds",
-      occupancy: "4 Adults",
-      image:
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=1974&auto=format&fit=crop",
-    },
-  ],
-  reviews: [
-    {
-      id: 1,
-      user: "Sophie Martin",
-      avatar: "/placeholder.svg",
-      rating: 5,
-      date: "October 15, 2023",
-      comment:
-        "Absolutely stunning hotel with impeccable service. The views from our room were breathtaking, and the staff went above and beyond to make our stay special. The breakfast was exceptional with a wide variety of options. Will definitely return!",
-    },
-    {
-      id: 2,
-      user: "James Wilson",
-      avatar: "/placeholder.svg",
-      rating: 4,
-      date: "September 3, 2023",
-      comment:
-        "Great location and beautiful property. The room was spacious and well-appointed. Only giving 4 stars because the check-in process was a bit slow, but otherwise a wonderful experience.",
-    },
-    {
-      id: 3,
-      user: "Emma Thompson",
-      avatar: "/placeholder.svg",
-      rating: 5,
-      date: "August 22, 2023",
-      comment:
-        "This hotel exceeded all my expectations. The spa facilities are world-class, and the restaurant serves some of the best food I've had in Paris. The concierge was incredibly helpful in arranging tours and restaurant reservations.",
-    },
-  ],
-  similarHotels: [
-    {
-      id: 2,
-      name: "Azure Beach Resort",
-      location: "Maldives",
-      image:
-        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2070&auto=format&fit=crop",
-      price: 680,
-      rating: 4.8,
-    },
-    {
-      id: 3,
-      name: "Mountain View Lodge",
-      location: "Swiss Alps",
-      image:
-        "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=2070&auto=format&fit=crop",
-      price: 320,
-      rating: 4.7,
-    },
-    {
-      id: 4,
-      name: "Sakura Ryokan",
-      location: "Kyoto, Japan",
-      image:
-        "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop",
-      price: 390,
-      rating: 4.9,
-    },
-  ],
+// Map of amenity names to Lucide icon components
+const amenityIconMap: Record<string, React.ReactNode> = {
+  wifi: <Wifi className="w-4 h-4" />,
+  restaurant: <Utensils className="w-4 h-4" />,
+  gym: <Dumbbell className="w-4 h-4" />,
+  pool: <Waves className="w-4 h-4" />,
+  parking: <Car className="w-4 h-4" />,
+  spa: <Spa className="w-4 h-4" />,
+  "room service": <Coffee className="w-4 h-4" />,
+  fireplace: <Spa className="w-4 h-4" />,
+  "ski-in/ski-out": <MountainSnow className="w-4 h-4" />,
+  onsen: <Waves className="w-4 h-4" />,
+  "traditional dining": <Utensils className="w-4 h-4" />,
+  garden: <Tree className="w-4 h-4" />,
+  "tea ceremony": <Coffee className="w-4 h-4" />,
+  "private pool": <Waves className="w-4 h-4" />,
+  terrace: <Tree className="w-4 h-4" />,
+  kitchen: <Utensils className="w-4 h-4" />,
+  "wine tasting": <Coffee className="w-4 h-4" />,
+  sauna: <Spa className="w-4 h-4" />,
+  "guided tours": <Landmark className="w-4 h-4" />,
+  bar: <Coffee className="w-4 h-4" />,
+  "business center": <Building2 className="w-4 h-4" />,
 };
 
-export default function HotelDetailPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [guests, setGuests] = useState(2);
-  const [isFavorite, setIsFavorite] = useState(false);
+// Map of category names to Lucide icon components
+const categoryIconMap: Record<string, React.ReactNode> = {
+  luxury: <Diamond className="w-4 h-4" />,
+  beach: <PalmTree className="w-4 h-4" />,
+  mountain: <MountainSnow className="w-4 h-4" />,
+  city: <Building2 className="w-4 h-4" />,
+  countryside: <Tree className="w-4 h-4" />,
+  historic: <Landmark className="w-4 h-4" />,
+  boutique: <Gem className="w-4 h-4" />,
+};
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Back button */}
-      <div className="mb-6">
-        <Button variant="ghost" className="flex items-center gap-1 pl-0">
-          <ChevronLeft className="h-4 w-4" />
-          Back to search results
+export default function HotelDetailPage({ hotelId }: { hotelId: number }) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const hotel = getHotelById(hotelId);
+  const hotelImages = getHotelImages(hotelId);
+  const thumbnailsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Prevent timer if no images are available
+    if (hotelImages.length === 0) return;
+
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % hotelImages.length);
+    }, 5000);
+
+    // Cleanup function
+    return () => clearInterval(timer);
+  }, [hotelImages.length]);
+
+  if (!hotel) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold mb-4">Hotel not found</h2>
+        <p className="text-muted-foreground mb-6">
+          The hotel you're looking for doesn't exist or has been removed.
+        </p>
+        <Button asChild>
+          <Link href="/">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Hotels
+          </Link>
         </Button>
       </div>
+    );
+  }
 
-      {/* Hotel Image Gallery */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-        <div className="lg:col-span-2 relative rounded-lg overflow-hidden h-[400px] lg:h-[500px]">
-          <Image
-            src={hotelData.images[0] || "/placeholder.svg"}
-            alt={hotelData.name}
-            fill
-            className="object-cover"
-          />
-          {hotelData.discount && (
-            <Badge className="absolute top-4 left-4 bg-primary">
-              Special Offer
-            </Badge>
-          )}
-        </div>
-        <div className="hidden lg:grid grid-cols-1 gap-4">
-          {hotelData.images.slice(1, 4).map((image, index) => (
-            <div
-              key={index}
-              className="relative rounded-lg overflow-hidden h-[156px]"
-            >
-              <Image
-                src={image || "/placeholder.svg"}
-                alt={`${hotelData.name} - Image ${index + 2}`}
-                fill
-                className="object-cover"
-              />
-            </div>
-          ))}
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % hotelImages.length);
+    scrollToThumbnail(currentSlide + 1);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide(
+      (prev) => (prev - 1 + hotelImages.length) % hotelImages.length
+    );
+    scrollToThumbnail(currentSlide - 1);
+  };
+
+  const scrollToThumbnail = (index: number) => {
+    if (!thumbnailsRef.current) return;
+
+    const normalizedIndex = (index + hotelImages.length) % hotelImages.length;
+    const thumbnails = thumbnailsRef.current.children;
+    if (thumbnails[normalizedIndex]) {
+      thumbnails[normalizedIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  };
+
+  // Calculate total price for 3 nights
+  const nightsStay = 3;
+  const subtotal = hotel.price * nightsStay;
+  const taxesAndFees = Math.round(subtotal * 0.15); // 15% for taxes and fees
+  const total = subtotal + taxesAndFees;
+
+  // Get category names from IDs
+  const categoryNames = hotel.categories.map((catId) => {
+    const category = hotelCategories.find((c) => c.id === catId);
+    return category ? category.name : catId;
+  });
+
+  return (
+    <div className="bg-background">
+      {/* Breadcrumb and back button */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center text-sm text-muted-foreground mb-4">
+          <Button variant="ghost" size="sm" asChild className="p-0 mr-2 h-auto">
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Hotels
+            </Link>
+          </Button>
+          <span className="mx-2">/</span>
+          <span>{hotel.location}</span>
+          <span className="mx-2">/</span>
+          <span className="font-medium text-foreground">{hotel.name}</span>
         </div>
       </div>
 
-      {/* Mobile Image Carousel (visible only on mobile) */}
-      <div className="lg:hidden mb-8">
-        <Carousel className="w-full">
-          <CarouselContent>
-            {hotelData.images.map((image, index) => (
-              <CarouselItem key={index}>
-                <div className="relative h-[300px] rounded-lg overflow-hidden">
-                  <Image
-                    src={image || "/placeholder.svg"}
-                    alt={`${hotelData.name} - Image ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
+      {/* Main content */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left column - Hotel details */}
+          <div className="w-full lg:w-2/3">
+            <div className="space-y-8">
+              {/* Hotel header */}
+              <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold">{hotel.name}</h1>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <div className="flex items-center bg-primary/10 px-2 py-1 rounded-full">
+                      <Star className="w-4 h-4 fill-primary text-primary mr-1" />
+                      <span className="font-semibold">{hotel.rating}</span>
+                      <span className="text-sm ml-1">
+                        ({hotel.reviewCount} reviews)
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <MapPin className="w-4 h-4 mr-1 text-primary" />
+                      <span>{hotel.location}</span>
+                    </div>
+                  </div>
+
+                  {/* Category tags */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {hotel.categories.map((category) => (
+                      <Badge
+                        key={category}
+                        variant="outline"
+                        className="flex items-center gap-1"
+                      >
+                        {categoryIconMap[category]}
+                        <span className="capitalize">{category}</span>
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-2" />
-          <CarouselNext className="right-2" />
-        </Carousel>
-      </div>
-
-      {/* Hotel Info and Booking Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Hotel Details */}
-        <div className="lg:col-span-2">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{hotelData.name}</h1>
-              <div className="flex items-center text-muted-foreground mb-2">
-                <MapPin className="h-4 w-4 mr-1" />
-                <span>{hotelData.location}</span>
-              </div>
-              <div className="flex items-center">
-                <div className="flex mr-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
+                <div className="flex gap-2 self-start">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full"
+                  >
+                    <Share className="h-4 w-4" />
+                    <span className="sr-only">Share</span>
+                  </Button>
+                  <Button
+                    variant={isLiked ? "default" : "outline"}
+                    size="icon"
+                    className="rounded-full"
+                    onClick={() => setIsLiked(!isLiked)}
+                  >
+                    <Heart
                       className={`h-4 w-4 ${
-                        i < Math.floor(hotelData.rating)
-                          ? "fill-primary text-primary"
-                          : "fill-muted text-muted-foreground"
+                        isLiked ? "fill-primary-foreground" : ""
                       }`}
                     />
-                  ))}
+                    <span className="sr-only">Favorite</span>
+                  </Button>
                 </div>
-                <span className="font-medium">{hotelData.rating}</span>
-                <span className="text-muted-foreground ml-1">
-                  ({hotelData.reviewCount} reviews)
-                </span>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsFavorite(!isFavorite)}
-                className="h-10 w-10"
-              >
-                <Heart
-                  className={`h-5 w-5 ${
-                    isFavorite ? "fill-red-500 text-red-500" : ""
-                  }`}
-                />
-                <span className="sr-only">Add to favorites</span>
-              </Button>
-              <Button variant="outline" size="icon" className="h-10 w-10">
-                <Share2 className="h-5 w-5" />
-                <span className="sr-only">Share</span>
-              </Button>
-            </div>
-          </div>
 
-          <p className="text-lg mb-8">{hotelData.description}</p>
-
-          <Tabs defaultValue="details" className="mb-10">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="amenities">Amenities</TabsTrigger>
-              <TabsTrigger value="rooms">Rooms</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="details" className="mt-6">
-              <div className="space-y-4">
-                <p className="whitespace-pre-line">
-                  {hotelData.longDescription}
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="amenities" className="mt-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {hotelData.amenities.map((amenity, index) => (
+              {/* Main Carousel */}
+              <div className="relative rounded-xl overflow-hidden aspect-[16/9] bg-muted">
+                {hotelImages.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center p-4 border rounded-lg"
+                    className={`absolute inset-0 transition-opacity duration-500 ${
+                      index === currentSlide
+                        ? "opacity-100"
+                        : "opacity-0 pointer-events-none"
+                    }`}
                   >
-                    <amenity.icon className="h-5 w-5 mr-3 text-primary" />
-                    <span>{amenity.name}</span>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="rooms" className="mt-6">
-              <div className="space-y-6">
-                {hotelData.rooms.map((room) => (
-                  <Card key={room.id} className="overflow-hidden">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="relative h-[200px] md:h-full">
-                        <Image
-                          src={room.image || "/placeholder.svg"}
-                          alt={room.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="p-4 md:col-span-2">
-                        <CardHeader className="p-0 pb-4">
-                          <CardTitle>{room.name}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Room Size
-                              </p>
-                              <p className="font-medium">{room.size}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Bed Type
-                              </p>
-                              <p className="font-medium">{room.beds}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Occupancy
-                              </p>
-                              <p className="font-medium">{room.occupancy}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">
-                                Price per night
-                              </p>
-                              <p className="font-bold text-lg">${room.price}</p>
-                            </div>
-                          </div>
-                          <Button className="w-full md:w-auto">
-                            Select Room
-                          </Button>
-                        </CardContent>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="reviews" className="mt-6">
-              <div className="space-y-6">
-                {hotelData.reviews.map((review) => (
-                  <div key={review.id} className="border-b pb-6 last:border-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center">
-                        <Avatar className="h-10 w-10 mr-3">
-                          <AvatarImage src={review.avatar} alt={review.user} />
-                          <AvatarFallback>
-                            {review.user.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{review.user}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {review.date}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < review.rating
-                                ? "fill-primary text-primary"
-                                : "fill-muted text-muted-foreground"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <p>{review.comment}</p>
-                  </div>
-                ))}
-                <Button variant="outline" className="w-full">
-                  Load More Reviews
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Similar Hotels */}
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">
-              Similar Hotels You Might Like
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hotelData.similarHotels.map((hotel) => (
-                <Card
-                  key={hotel.id}
-                  className="overflow-hidden transition-all duration-300 hover:shadow-lg"
-                >
-                  <div className="relative h-48 overflow-hidden">
                     <Image
-                      src={hotel.image || "/placeholder.svg"}
-                      alt={hotel.name}
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.alt}
                       fill
-                      className="object-cover transition-transform duration-500 hover:scale-110"
+                      className="object-cover"
+                      priority={index === 0}
                     />
                   </div>
-                  <CardHeader className="p-4 pb-0">
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-lg font-bold">{hotel.name}</h3>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-primary text-primary mr-1" />
-                        <span className="text-sm font-medium">
-                          {hotel.rating}
-                        </span>
+                ))}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
+                  aria-label="Previous slide"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
+                  aria-label="Next slide"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+
+                {hotel.discount && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge className="bg-primary hover:bg-primary text-white">
+                      SPECIAL OFFER
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="absolute bottom-4 left-4 text-white">
+                  <h2 className="text-xl font-bold drop-shadow-md">
+                    {hotel.name}
+                  </h2>
+                  <p className="text-sm drop-shadow-md">{hotel.location}</p>
+                </div>
+              </div>
+
+              {/* Thumbnails */}
+              <div
+                ref={thumbnailsRef}
+                className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide"
+              >
+                {hotelImages.map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`relative flex-shrink-0 w-24 h-16 rounded-md overflow-hidden transition-all ${
+                      index === currentSlide
+                        ? "ring-2 ring-primary ring-offset-2"
+                        : "opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <Image
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.alt}
+                      fill
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Tabs for hotel information */}
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="w-full grid grid-cols-3">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="amenities">Amenities</TabsTrigger>
+                  <TabsTrigger value="policies">Policies</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview" className="pt-4 space-y-4">
+                  <div>
+                    <h2 className="text-2xl font-semibold mb-3">
+                      About {hotel.name}
+                    </h2>
+                    <p className="text-muted-foreground">{hotel.description}</p>
+                    <p className="text-muted-foreground mt-3">
+                      Experience luxury and comfort at our premier destination.
+                      Our hotel offers breathtaking views, world-class
+                      amenities, and exceptional service. Whether you're seeking
+                      a romantic getaway, family vacation, or business retreat,
+                      we provide the perfect setting for an unforgettable stay.
+                    </p>
+                  </div>
+
+                  <div className="mt-6">
+                    <h3 className="text-xl font-semibold mb-3">
+                      Popular Amenities
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {hotel.amenities.slice(0, 6).map((amenity, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                            {amenityIconMap[amenity] || (
+                              <Check className="w-4 h-4" />
+                            )}
+                          </div>
+                          <span className="capitalize">{amenity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="amenities" className="pt-4">
+                  <h2 className="text-2xl font-semibold mb-4">All Amenities</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">
+                        Room Features
+                      </h3>
+                      <div className="space-y-2">
+                        {["wifi", "room service", "coffee", "kitchen"]
+                          .filter((item) => hotel.amenities.includes(item))
+                          .map((amenity, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2"
+                            >
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                                {amenityIconMap[amenity] || (
+                                  <Check className="w-4 h-4" />
+                                )}
+                              </div>
+                              <span className="capitalize">{amenity}</span>
+                            </div>
+                          ))}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                            <BedDouble className="w-4 h-4" />
+                          </div>
+                          <span>Comfortable Beds</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center text-muted-foreground text-sm mt-1">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {hotel.location}
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">
+                        Property Amenities
+                      </h3>
+                      <div className="space-y-2">
+                        {["pool", "spa", "restaurant", "gym", "parking"]
+                          .filter((item) => hotel.amenities.includes(item))
+                          .map((amenity, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2"
+                            >
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                                {amenityIconMap[amenity] || (
+                                  <Check className="w-4 h-4" />
+                                )}
+                              </div>
+                              <span className="capitalize">{amenity}</span>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-2">
-                    <p className="text-xl font-bold">
-                      ${hotel.price}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        / night
-                      </span>
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="policies" className="pt-4">
+                  <h2 className="text-2xl font-semibold mb-4">
+                    Hotel Policies
+                  </h2>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">
+                        Check-in & Check-out
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-secondary p-4 rounded-lg">
+                          <p className="text-sm text-muted-foreground">
+                            Check-in Time
+                          </p>
+                          <p className="font-medium">3:00 PM - 12:00 AM</p>
+                        </div>
+                        <div className="bg-secondary p-4 rounded-lg">
+                          <p className="text-sm text-muted-foreground">
+                            Check-out Time
+                          </p>
+                          <p className="font-medium">Until 11:00 AM</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">
+                        Important Information
+                      </h3>
+                      <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                        <li>Photo ID required at check-in</li>
+                        <li>Credit card required for incidental charges</li>
+                        <li>Special requests cannot be guaranteed</li>
+                        <li>Pets not allowed (service animals welcome)</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">
+                        Cancellation Policy
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Free cancellation up to 24 hours before check-in.
+                        Cancellations made less than 24 hours before check-in
+                        are subject to a one-night room charge.
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
-        </div>
 
-        {/* Booking Card */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-8">
-            <CardHeader>
-              <CardTitle>Book Your Stay</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Price per night
-                  </p>
-                  <div className="flex items-center">
-                    {hotelData.discount ? (
-                      <>
-                        <p className="text-2xl font-bold">
-                          ${hotelData.discountPrice}
-                        </p>
-                        <p className="text-sm text-muted-foreground line-through ml-2">
-                          ${hotelData.price}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-2xl font-bold">${hotelData.price}</p>
-                    )}
-                  </div>
-                </div>
-                {hotelData.discount && (
-                  <Badge className="bg-primary">
-                    {Math.round(
-                      (1 - hotelData.discountPrice / hotelData.price) * 100
-                    )}
-                    % OFF
-                  </Badge>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="check-in">Check-in Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="check-out">Check-out Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        <span>Pick a date</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="guests">Guests</Label>
-                  <div className="flex items-center">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setGuests(Math.max(1, guests - 1))}
-                    >
-                      -
-                    </Button>
-                    <div className="flex items-center mx-4">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>
-                        {guests} {guests === 1 ? "Guest" : "Guests"}
-                      </span>
+          {/* Right column - Booking card */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-20">
+              <Card className="border shadow-lg">
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-3xl font-bold">
+                          ${hotel.price}
+                        </span>
+                        <span className="text-muted-foreground">per night</span>
+                      </div>
+                      {hotel.discount && (
+                        <Badge
+                          variant="outline"
+                          className="mt-1 text-primary border-primary"
+                        >
+                          Special offer: 15% off
+                        </Badge>
+                      )}
                     </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setGuests(Math.min(10, guests + 1))}
-                    >
-                      +
+
+                    <Separator />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Check-in</label>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Mar 15, 2025
+                        </Button>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Check-out</label>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Mar 18, 2025
+                        </Button>
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <label className="text-sm font-medium">Guests</label>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <Users className="mr-2 h-4 w-4" />2 adults, 0 children
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 bg-secondary/50 p-4 rounded-lg">
+                      <div className="flex justify-between">
+                        <span>
+                          ${hotel.price} x {nightsStay} nights
+                        </span>
+                        <span>${subtotal}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Taxes and fees</span>
+                        <span>${taxesAndFees}</span>
+                      </div>
+                      <Separator className="my-2" />
+                      <div className="flex justify-between font-bold">
+                        <span>Total</span>
+                        <span>${total}</span>
+                      </div>
+                    </div>
+
+                    <Button className="w-full" size="lg">
+                      Reserve Now
                     </Button>
+
+                    <div className="text-center text-sm text-muted-foreground">
+                      You won't be charged yet
+                    </div>
                   </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="promo">Promo Code</Label>
-                  <Input id="promo" placeholder="Enter promo code" />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>3 nights</span>
-                  <span>${hotelData.discountPrice * 3}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Taxes & fees</span>
-                  <span>${Math.round(hotelData.discountPrice * 3 * 0.15)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between font-bold">
-                  <span>Total</span>
-                  <span>
-                    $
-                    {hotelData.discountPrice * 3 +
-                      Math.round(hotelData.discountPrice * 3 * 0.15)}
-                  </span>
-                </div>
-              </div>
-
-              <Button className="w-full" size="lg">
-                Book Now
-              </Button>
-
-              <p className="text-xs text-center text-muted-foreground">
-                You won't be charged yet. Payment will be collected at the
-                property.
-              </p>
-            </CardContent>
-          </Card>
+                </CardContent>
+                <CardFooter className="bg-secondary/30 px-6 py-4">
+                  <div className="w-full space-y-2">
+                    <h3 className="font-medium">Price Guarantee</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Book with confidence. If you find a lower price elsewhere,
+                      we'll match it and give you an additional 10% off.
+                    </p>
+                  </div>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

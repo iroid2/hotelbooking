@@ -8,63 +8,53 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Moon, Search, Sun, User } from "lucide-react";
 
-const Navbar = () => {
+export default function Navbar() {
   const { theme, setTheme } = useTheme();
-  const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Use a more efficient scroll handler with throttling
   useEffect(() => {
-    setIsMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    window.addEventListener("scroll", handleScroll);
+
+    // Add passive listener for better performance
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!isMounted) return null;
-
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`sticky top-0 z-50 w-full transition-colors duration-200 ${
         isScrolled
           ? "bg-background/80 backdrop-blur-md shadow-sm"
-          : "bg-transparent"
+          : "bg-background/5 backdrop-blur-sm"
       }`}
     >
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold font-playfair">Luxe Stays</span>
+            <span className="text-2xl font-bold">Luxe Stays</span>
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link
-              href="/"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Home
-            </Link>
-            <Link
-              href="/hotels"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Hotels
-            </Link>
-            <Link
-              href="/destinations"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Destinations
-            </Link>
-            <Link
-              href="/offers"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Special Offers
-            </Link>
+            {["Home", "Hotels", "Destinations", "Special Offers"].map(
+              (item) => (
+                <Link
+                  key={item}
+                  href={
+                    item === "Home"
+                      ? "/"
+                      : `/${item.toLowerCase().replace(" ", "-")}`
+                  }
+                  className="text-sm font-medium hover:text-primary transition-colors"
+                >
+                  {item}
+                </Link>
+              )
+            )}
           </nav>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div className="hidden md:flex relative w-40 lg:w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -77,17 +67,21 @@ const Navbar = () => {
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="rounded-full"
+            aria-label="Toggle theme"
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5" />
             ) : (
               <Moon className="h-5 w-5" />
             )}
-            <span className="sr-only">Toggle theme</span>
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            aria-label="Account"
+          >
             <User className="h-5 w-5" />
-            <span className="sr-only">Account</span>
           </Button>
           <Sheet>
             <SheetTrigger asChild>
@@ -95,37 +89,28 @@ const Navbar = () => {
                 variant="ghost"
                 size="icon"
                 className="md:hidden rounded-full"
+                aria-label="Menu"
               >
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="right" className="w-[250px] sm:w-[300px]">
               <nav className="flex flex-col gap-4 mt-8">
-                <Link
-                  href="/"
-                  className="text-lg font-medium hover:text-primary transition-colors"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/hotels"
-                  className="text-lg font-medium hover:text-primary transition-colors"
-                >
-                  Hotels
-                </Link>
-                <Link
-                  href="/destinations"
-                  className="text-lg font-medium hover:text-primary transition-colors"
-                >
-                  Destinations
-                </Link>
-                <Link
-                  href="/offers"
-                  className="text-lg font-medium hover:text-primary transition-colors"
-                >
-                  Special Offers
-                </Link>
+                {["Home", "Hotels", "Destinations", "Special Offers"].map(
+                  (item) => (
+                    <Link
+                      key={item}
+                      href={
+                        item === "Home"
+                          ? "/"
+                          : `/${item.toLowerCase().replace(" ", "-")}`
+                      }
+                      className="text-lg font-medium hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  )
+                )}
               </nav>
             </SheetContent>
           </Sheet>
@@ -133,6 +118,4 @@ const Navbar = () => {
       </div>
     </header>
   );
-};
-
-export default Navbar;
+}

@@ -127,7 +127,7 @@ const FeaturedHotels = ({ hotels = featuredHotels }: FeaturedHotelsProps) => {
                 </p>
               </CardContent>
               <CardFooter className="p-4 pt-0">
-                <Link href={`/hotels/${hotel.id}`} className="w-full">
+                <Link href={`/hotel/${hotel.id}`} className="w-full">
                   <Button variant="outline" className="w-full">
                     View Details
                   </Button>
